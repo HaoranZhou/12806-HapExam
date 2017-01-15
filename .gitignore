@@ -19,3 +19,10 @@
 **/tmp
 **/.tmp
 **/bin/**
+**/overlays
+*.stackdump
+/.gradle/
+/classes/
+**/build/
+
+*/.rebel*
