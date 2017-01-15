@@ -1,0 +1,340 @@
+<#include "include/header.html">
+    <body>
+    <script src="${base.contextPath}/common/code?saleOrderStatusdata=HAP_OM_ORDER_STATUS" type="text/javascript"></script>
+    <style>
+        span[class='k-window-title'] {
+            user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+    </style>
+    <script type="text/javascript">
+        var viewModel = kendo.observable({
+            model: {},
+            saleOrderStatusdata : saleOrderStatusdata,
+            createFunction: function(){
+                editData();
+            },
+            queryFunction: function (e) {
+                $('#Grid').data('kendoGrid').dataSource.page(1);
+            },
+            resetForm: function (e) {
+                var formData = viewModel.model.toJSON();
+                for (var k in formData) {
+                    viewModel.model.set(k, null);
+                }
+            }
+        });
+
+        var crudServiceBaseUrl = '${base.contextPath}'+'/sale/order',
+            dataSource = new kendo.data.DataSource({
+                transport: {
+                    read    : {
+                        url: crudServiceBaseUrl + "/query",
+                        type    : "POST",
+                        dataType: "json"
+                    },
+                    create  : {
+                        url        : crudServiceBaseUrl + "/submit",
+                        contentType: "application/json",
+                        type       : "POST"
+                    },
+                    parameterMap: function (options, type) {
+                        if (type === "read") {
+                            var map = viewModel.model.toJSON();
+                            map.start = (options.page - 1) * options.pageSize;
+                            map.size = options.pageSize;
+                            for (var k in map) {
+                                if (map[k] === '' || map[k] === null || map[k] === undefined)
+                                    delete map[k]
+                            }
+                            for (var k in map) {
+                                if (map[k] instanceof Date) {
+                                    map[k] = kendo.toString(map[k], "yyyy-MM-ddTHH:mm:ss'GMT'z")
+                                }
+                            }
+                            return map;
+                        }
+                    }
+                },
+                batch: true,
+                serverPaging: true,
+                serverSorting: true,
+                pageSize: 10,
+                schema: {
+                    data: 'rows',
+                    total: 'total',
+                    model: {
+                        id:"orderNumber",
+                        fields:{
+                            orderNumber:{type: "string"},
+                            companyName:{type: "string"},
+                            customerName:{type: "string"},
+                            orderDate:{type: "string"},
+                            orderStatus:{type: "string"},
+                            orderAmount:{type: "double"}
+                        }
+                    }
+                }
+            });
+    </script>
+<div id="content-container">
+    <div id="page-content">
+        <div class="panel" style="padding: 0px;border:none;box-shadow: none;" id="query">
+            <form class="form-horizontal" id="myForm">
+                <header>
+                    <span>订单管理</span>
+                </header>
+                <div class="panel-body">
+                    <div class="row" style="margin-bottom: 10px;">
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <label for="companyName" class="col-sm-3 control-label">公司名称</label>
+                                <div class="col-sm-9">
+                                    <input type="text" id="companyName" placeholder='<@spring.message "company.parentCompanyName"/>'
+                                           style="width:150px;" data-bind="value:model.CompanyNumber">
+                                    <script>
+                                        $("#companyName").kendoLov($.extend(${lovProvider.getLov(base.contextPath, base.locale, "LOV_Company_test")},{
+                                            query: function (e) {
+                                                e.param['enabledFlag'] = 'Y';
+                                            }
+                                        }))
+                                    </script>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <label for="customerName" class="col-sm-3 control-label">客户名称</label>
+                                <div class="col-sm-9">
+                                    <input type="text" id="customerName"
+                                           style="width:150px;" data-bind="value:model.customerNumber">
+                                    <script>
+                                        $("#customerName").kendoLov($.extend(${lovProvider.getLov(base.contextPath, base.locale, "LOV_CUSTOMER_TEST")}, {
+                                            query: function (e) {
+                                                e.param['enabledFlag'] = 'Y';
+                                            }
+                                        }))
+                                    </script>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <label for="orderNumber" class="col-sm-3 control-label">销售订单号</label>
+                                <div class="col-sm-7">
+                                    <input id="orderNumber" type="text" style="width: 50%"
+                                           data-bind="value:model.orderNumber" class="k-textbox">
+                                </div>
+                            </div>
+                        </div>
+                   </div>
+                   
+                   <div class="row ">
+                       <div class="col-sm-3">
+                           <div class="form-group">
+                               <label for="inventoryName" class="col-sm-3 control-label">物料</label>
+                               <div class="col-sm-9">
+                                   <input type="text" id="inventoryName"
+                                          style="width:150px;" data-bind="value:model.itemCode">
+                                   <script>
+                                       $("#inventoryName").kendoLov($.extend(${lovProvider.getLov(base.contextPath, base.locale, "HAP_Iventory")}, {
+                                           query: function (e) {
+                                               e.param['enabledFlag'] = 'Y';
+                                           }
+                                       }))
+                                   </script>
+                               </div>
+                           </div>
+                       </div>
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <label for="orderstatus" class="col-sm-3 control-label">订单状态</label>
+                                <div class="col-sm-9">
+                                    <select data-role="combobox" data-value-primitive="true" id="orderstatus"
+                                            data-text-field="meaning" data-value-field="value"
+                                            data-bind="source: saleOrderStatusdata,value:model.orderStatus" style="width: 150px;">
+                                    </select>
+                                </div>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </form>
+            <div class="row">
+                <div class="col-sm-4">
+                    <span class="btn btn-primary k-grid-add" style="float:left;margin-right:5px;" data-bind="click:createFunction"><@spring.message "hap.new"/></span>
+                    <span class="btn btn-primary" data-bind="click:queryFunction" type="submit"><@spring.message "hap.query"/></span>
+                    <span class="btn btn-default" type="button" data-bind="click:resetForm"><@spring.message "hap.reset"/></span>
+                    <span class="btn btn-primary" style="margin-right:5px;"
+                          data-bind=""><@spring.message "hap.exportexcel"/></span>
+                </div>
+
+            </div>
+        </div>
+
+        <div style="clear:both">
+            <div id="Grid"  class="table"></div>
+        </div>
+
+    </div>
+</div>
+
+<div id="taskDetailWin"></div>
+<div id="runtimeWin"></div>
+
+<script type="text/javascript">
+
+
+
+        kendo.bind($('#page-content'), viewModel);
+
+    $('#myForm input').keydown(function (e) {
+        if (e.keyCode == 13) {
+            e.target.blur();
+            viewModel.queryFunction(e);
+        }
+    });
+
+
+    var grid = $("#Grid").kendoGrid({
+        dataSource : dataSource,
+        navigatable: true,
+        height: '100%',
+        resizable: true,
+        scrollable: true,
+        /*selectable:"multiple,rowbox",*/
+        pageable: {
+            pageSizes: [5, 10, 20, 50],
+            refresh: true,
+            buttonCount: 5
+        },
+        sortable: true,
+        columns    : [
+            {
+                field:"orderNumber",
+                title: '<@spring.message "order.ordernumber"/>',
+                width: 80,
+                template: function (rowdata) {
+                    if (!!rowdata.orderNumber) {
+                        return '<a href="javascript:void(0);" onclick="assignOrder('+rowdata.employeeId +')">'+ kendo.htmlEncode(rowdata.orderNumber) +'</a>'
+                    }
+                    return '';
+                },
+                attributes: {style: "text-align:center"},
+                headerAttributes: { style: "text-align:center"}
+            },{
+                field: "companyName",
+                title: '<@spring.message "order.companyname"/>',
+                width: 100,
+                attributes: {style: "text-align:center"},
+                headerAttributes: { style: "text-align:center"}
+            },
+            {
+                field: "customerName",
+                title: '<@spring.message "order.customername"/>',
+                width: 100,
+                attributes: {style: "text-align:center"},
+                headerAttributes: { style: "text-align:center"}
+            },
+            {
+                field : "orderDate",
+                title : '<@spring.message "order.orderdate"/>',
+                width : 120,
+                attributes: {style: "text-align:center"},
+                headerAttributes: {
+                    "class": "table-header-cell",
+                    style  : "text-align: center"
+                },
+                format: "{0:yyyy-MM-dd}"
+            },{
+                field : "orderStatus",
+                title : '<@spring.message "order.orderstatus"/>',
+                width : 80,
+                attributes: {style: "text-align:center"},
+                headerAttributes: {
+                    "class": "table-header-cell",
+                    style  : "text-align: center"
+                },
+                template: function(dataItem){
+                    var v = dataItem.orderStatus;
+                    $.each(saleOrderStatusdata,function(i,n){
+                        if((n.value||'').toLowerCase() == (v||'').toLowerCase()){
+                            v = n.meaning;
+                            return v;
+                        }
+                    })
+                    return v;
+                },
+                editor: function(container, options){
+                    $('<input name="' + options.field + '"/>')
+                        .appendTo(container)
+                        .kendoDropDownList({
+                            dataTextField: "meaning",
+                            dataValueField: "value",
+                            valuePrimitive: true,
+                            dataSource: saleOrderStatusdata
+                        });
+                }
+            },{
+                field: "orderAmount",
+                attributes: {style: "text-align:center"},
+                title: '<@spring.message "order.orderamount"/>',
+                width: 80,
+                attributes: {style: "text-align:center"},
+                headerAttributes: {
+                    "class": "table-header-cell",
+                    style  : "text-align: center"
+                }
+            }
+        ],
+        editable   : false
+    }).data("kendoGrid");
+
+
+    window.editData = function(){
+        var url = 'order_edit.html';
+        var dialog =  $("#dialog").kendoWindow({
+            actions: [ "Maximize", "Minimize", "Close"],
+            width: 900,
+            height: 500,
+            title: '<@spring.message "hap.edit"/>',
+            content: url,
+            iframe:  true,
+            visible: false,
+            modal:true,
+            close: function() {
+
+                $('#Grid').data('kendoGrid').dataSource.page(1);
+            }
+        }).data("kendoWindow");
+        dialog.center().open();
+    };
+
+    window.assignOrder = function (employeeId) {
+        var assignDialog = $("#assign-dialog").kendoWindow({
+            actions: ["Close"],
+            width  : 900,
+            height : 500,
+            title  : '<@spring.message "order.orderdetail"/>',
+            visible: false,
+            iframe : true,
+            modal  : true,
+            content: 'order_edit.html?employeeId=' + employeeId,
+            close: function(e){
+                $("#Grid").data("kendoGrid").dataSource.page(1);
+            }
+        }).data("kendoWindow");
+        assignDialog.center().open();
+    };
+
+
+    Hap.autoResizeGrid("#Grid");
+</script>
+
+</body>
+</html>

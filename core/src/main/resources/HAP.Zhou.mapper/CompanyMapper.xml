@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="HAP.Zhou.mapper.MyCompanyMapper">
+    <resultMap id="CompanyResult" type="HAP.Zhou.dto.Company" >
+        <id property="companyId" column="COMPANY_ID"/>
+        <result property="companyName" column="COMPANY_NAME"/>
+        <result property="companyNumber" column="COMPANY_NUMBER"/>
+        <result property="enabledFlag" column="ENABLED_FLAG"/>
+        <result property="creationDate" column="CREATION_DATE"/>
+        <result property="createBy" column="CREATED_BY"/>
+        <result property="LastUpdatedBy" column="LAST_UPDATED_BY"/>
+        <result property="LastUpdateDate" column="LAST_UPDATE_DATE"/>
+        <result property="LastUpadteLogin" column="LAST_UPDATE_LOGIN"/>
+    </resultMap>
+    <select id="selectCompany" parameterType="HAP.Zhou.dto.Company" resultMap="CompanyResult">
+          SELECT COMPANY_NUMBER,COMPANY_NAME from hap_org_companys where 1=1
+        <if test="companyNumber !=null">
+            and COMPANY_NUMBER LIKE CONCAT('%', CONCAT(#{companyNumber}, '%'))
+        </if>
+        <if test="companyName !=null">
+            and COMPANY_NAME LIKE CONCAT('%', CONCAT(#{companyName}, '%'))
+        </if>
+    </select>
+
+
+</mapper>

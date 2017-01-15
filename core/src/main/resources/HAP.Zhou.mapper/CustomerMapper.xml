@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="HAP.Zhou.mapper.MyCustomerMapper">
+    <resultMap id="CustomerResult" type="HAP.Zhou.dto.Customer" extends="com.hand.hap.mapper.StdMapper.STD">
+        <id property="customerId" column="CUSTOMER_ID"/>
+        <result property="customerNumber" column="CUSTOMER_NUMBER"/>
+        <result property="customerName" column="CUSTOMER_NAME"/>
+        <result property="companyId" column="COMPANY_ID"/>
+        <result property="enabledFlag" column="ENABLED_FLAG"/>
+        <result property="creationDate" column="CREATION_DATE"/>
+        <result property="createdBy" column="CREATED_BY"/>
+        <result property="lastUpdatedBy" column="LAST_UPDATED_BY"/>
+        <result property="lastUpdateDate" column="LAST_UPDATE_DATE"/>
+        <result property="lastUpdateLogin" column="LAST_UPDATE_LOGIN"/>
+    </resultMap>
+    <select id="selectCustomer" parameterType="HAP.Zhou.dto.Customer" resultMap="CustomerResult">
+        SELECT CUSTOMER_NUMBER,CUSTOMER_NAME from hap_ar_customers where 1=1
+        <if test="customerNumber !=null">
+            and CUSTOMER_NUMBER LIKE CONCAT('%', CONCAT(#{customerNumber}, '%'))
+        </if>
+        <if test="customerName !=null">
+            and CUSTOMER_NAME LIKE CONCAT('%', CONCAT(#{customerName}, '%'))
+        </if>
+    </select>
+
+
+</mapper>

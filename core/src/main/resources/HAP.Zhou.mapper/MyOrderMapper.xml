@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="HAP.Zhou.mapper.MyOrderMapper">
+    <resultMap id="OrderResultMap" type="HAP.Zhou.dto.OrderHeader" extends="com.hand.hap.mapper.StdMapper.STD">
+        <result column="HEADER_ID" property="headerId"/>
+        <result column="ORDER_NUMBER" property="orderNumber" />
+        <result column="COMPANY_NAME" property="companyName" />
+        <result column="COMPANY_NUMBER" property="companyNumber"/>
+        <result column="CUSTOMER_NUMBER" property="customerNumber"/>
+        <result column="ITEM_CODE" property="itemCode"/>
+        <result column="CUSTOMER_NAME" property="customerName" />
+        <result column="ORDER_DATE" property="orderDate" />
+        <result column="ORDER_STATUS" property="orderStatus" />
+        <result column="ORDER_AMOUNT" property="orderAmount" />
+    </resultMap>
+
+    <select id="FindOrderInf" parameterType="HAP.Zhou.dto.OrderHeader" resultMap="OrderResultMap">
+        SELECT
+            h.ORDER_NUMBER , com.COMPANY_NAME , com.COMPANY_NUMBER , cus.CUSTOMER_NAME , cus.CUSTOMER_NUMBER , h.ORDER_DATE,
+            i.ITEM_CODE , h.ORDER_STATUS , l.ORDERD_QUANTITY*l.UNIT_SELLING_PRICE ORDER_AMOUNT , h.HEADER_ID
+        FROM
+            hap_om_order_headers h, hap_org_companys com,
+            hap_ar_customers cus, hap_om_order_lines l,hap_inv_inventory_items i
+        WHERE l.HEADER_ID = h.HEADER_ID
+            AND h.COMPANY_ID = com.COMPANY_ID
+            AND l.INVENTORY_ITEM_ID = i.INVENTORY_ITEM_ID
+            AND h.CUSTOMER_ID = cus.CUSTOMER_ID
+
+            <if test="companyNumber != null ">
+                AND com.COMPANY_NUMBER LIKE concat('%', concat(#{companyNumber}, '%'))
+            </if>
+            <if test="customerNumber != null">
+                AND cus.CUSTOMER_NUMBER LIKE concat('%', concat(#{customerNumber}, '%'))
+            </if>
+            <if test="orderNumber != null">
+                AND h.ORDER_NUMBER LIKE concat('%', concat(#{orderNumber}, '%'))
+            </if>
+            <if test="itemCode != null">
+                AND i.ITEM_CODE LIKE concat('%', concat(#{itemCode}, '%'))
+            </if>
+    </select>
+
+
+</mapper>
